@@ -8,7 +8,7 @@ using System.Text;
 namespace DocumentStudy.Infrastructure;
 
 public class Repository(
-    [FromKeyedServices("rules")] BlobContainerClient rulesContainerClient,
+    [FromKeyedServices("raw")] BlobContainerClient rawContainerClient, 
     DocumentIntelligenceClient documentIntelligenceClient,
     Kernel kernel)
 {
@@ -19,7 +19,7 @@ public class Repository(
     CancellationToken cancellation = default)
     {
         string blobPath = $"{campaignId}/raw/{fileName}";
-        var blobClient = rulesContainerClient.GetBlobClient(blobPath);
+        var blobClient = rawContainerClient.GetBlobClient(blobPath);
         await blobClient.UploadAsync(fileContent, overwrite: true, cancellationToken: cancellation);
 
         // Get the blob's URL for linking
@@ -44,7 +44,7 @@ public class Repository(
         foreach (var (Content, PageNumber) in chunks)
         {
             string cookedPath = $"{campaignId}/cooked/{fileName}_{chunkIndex:D7}.md";
-            var cookedBlob = rulesContainerClient.GetBlobClient(cookedPath);
+            var cookedBlob = rawContainerClient.GetBlobClient(cookedPath);
             using var chunkStream = new MemoryStream(Encoding.UTF8.GetBytes(Content));
             await cookedBlob.UploadAsync(chunkStream, overwrite: true, cancellationToken: cancellation);
 
